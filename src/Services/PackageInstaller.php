@@ -11,10 +11,8 @@ class PackageInstaller
     public function __construct(private Command $command) {}
 
     /**
-     * Install a list of composer packages and run their post-install actions.
-     *
-     * @param  array<string>  $selectedPackages  Composer package names to install
-     * @param  array<string, array>  $allPackages  Full package config from fast-setup.php
+     * @param  array<string>  $selectedPackages
+     * @param  array<string, array>  $allPackages
      */
     public function install(array $selectedPackages, array $allPackages): void
     {
@@ -51,9 +49,6 @@ class PackageInstaller
         }
     }
 
-    /**
-     * Run `composer require` for a single package.
-     */
     private function requirePackage(string $package): bool
     {
         exec("composer require {$package} 2>&1", $output, $exitCode);
@@ -67,73 +62,34 @@ class PackageInstaller
         return true;
     }
 
-    /**
-     * Run post-install steps: publish assets and/or migrate.
-     */
-    private function runPostInstall(string $package, array $postInstall): void
+    private function runPostInstall(string $_package, array $postInstall): void
     {
         if (empty($postInstall)) {
             return;
         }
 
-        // Run a standalone artisan command (e.g. telescope:install)
+        // Run as a new process so freshly installed ServiceProviders are discovered
         if (! empty($postInstall['artisan'])) {
-            $artisanCommand = $postInstall['artisan'];
-            $this->command->line("  → Running: php artisan {$artisanCommand}");
-            [$command, $args] = $this->parseArtisanCommand($artisanCommand);
-            $this->command->call($command, $args);
+            $this->runArtisan($postInstall['artisan']);
         }
 
-        // Publish vendor assets
         if (! empty($postInstall['publish'])) {
-            $this->command->line('  → Publishing assets...');
-            $args = $this->parsePublishArgs($postInstall['publish']);
-            $this->command->call('vendor:publish', $args);
+            $this->runArtisan("vendor:publish {$postInstall['publish']}");
         }
 
-        // Run migrations
         if (! empty($postInstall['migrate'])) {
-            $this->command->line('  → Running migrations...');
             $this->command->call('migrate', ['--force' => true]);
         }
     }
 
-    /**
-     * Parse a publish string like:
-     *   --provider="Foo\Bar" --tag="some-tag"
-     * into an artisan argument array.
-     */
-    private function parsePublishArgs(string $publishString): array
+    private function runArtisan(string $artisanCommand): void
     {
-        $args = [];
+        $this->command->line("  → Running: php artisan {$artisanCommand}");
+        exec("php artisan {$artisanCommand} 2>&1", $output, $exitCode);
 
-        if (preg_match('/--provider="([^"]+)"/', $publishString, $matches)) {
-            $args['--provider'] = $matches[1];
+        if ($exitCode !== 0) {
+            $this->command->warn("  ⚠ Command failed: php artisan {$artisanCommand}");
+            $this->command->line('  <fg=gray>' . implode("\n  ", $output) . '</>');
         }
-
-        if (preg_match('/--tag="([^"]+)"/', $publishString, $matches)) {
-            $args['--tag'] = $matches[1];
-        }
-
-        return $args;
-    }
-
-    /**
-     * Split an artisan command string like "telescope:install --force"
-     * into ['telescope:install', ['--force' => true]].
-     */
-    private function parseArtisanCommand(string $command): array
-    {
-        $parts = explode(' ', $command);
-        $name  = array_shift($parts);
-        $args  = [];
-
-        foreach ($parts as $part) {
-            if (str_starts_with($part, '--')) {
-                $args[trim($part)] = true;
-            }
-        }
-
-        return [$name, $args];
     }
 }

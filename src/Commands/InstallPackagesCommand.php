@@ -7,25 +7,14 @@ namespace karimalik\FastSetup\Commands;
 use Illuminate\Console\Command;
 use karimalik\FastSetup\Services\PackageInstaller;
 
+use function Laravel\Prompts\multiselect;
+
 class InstallPackagesCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'fast:install-packages';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Interactively select and install packages for your Laravel project.';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): int
     {
         $allPackages = config('fast-setup.packages');
@@ -35,21 +24,15 @@ class InstallPackagesCommand extends Command
             return self::FAILURE;
         }
 
-        $choices = collect($allPackages)
-            ->map(fn($config, $package) => "{$config['name']}  [{$package}]")
-            ->values()
+        $options = collect($allPackages)
+            ->mapWithKeys(fn($config, $package) => [$package => $config['name']])
             ->toArray();
 
-        $this->info('Select the packages you want to install:');
-        $this->line('<fg=gray>Use space to select multiple, enter to confirm.</fg=gray>');
-        $this->newLine();
-
-        $selected = $this->choice(
-            'Packages',
-            $choices,
-            null,
-            null,
-            true 
+        $selected = multiselect(
+            label: 'Select the packages you want to install',
+            options: $options,
+            hint: 'Space to select, Enter to confirm.',
+            required: false,
         );
 
         if (empty($selected)) {
@@ -57,24 +40,9 @@ class InstallPackagesCommand extends Command
             return self::SUCCESS;
         }
 
-        $packageKeys = array_keys($allPackages);
-        $selectedPackages = collect($selected)
-            ->map(function ($label) use ($packageKeys, $allPackages) {
-                foreach ($packageKeys as $key) {
-                    $expectedLabel = "{$allPackages[$key]['name']}  [{$key}]";
-                    if ($label === $expectedLabel) {
-                        return $key;
-                    }
-                }
-                return null;
-            })
-            ->filter()
-            ->values()
-            ->toArray();
-
         $this->newLine();
         $this->info('The following packages will be installed:');
-        foreach ($selectedPackages as $pkg) {
+        foreach ($selected as $pkg) {
             $this->line("  - <fg=cyan>{$pkg}</>");
         }
         $this->newLine();
@@ -85,7 +53,7 @@ class InstallPackagesCommand extends Command
         }
 
         $installer = new PackageInstaller($this);
-        $installer->install($selectedPackages, $allPackages);
+        $installer->install($selected, $allPackages);
 
         return self::SUCCESS;
     }
