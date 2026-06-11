@@ -76,64 +76,27 @@ class PackageInstaller
             return;
         }
 
-        // Run a standalone artisan command (e.g. telescope:install)
         if (! empty($postInstall['artisan'])) {
-            $artisanCommand = $postInstall['artisan'];
-            $this->command->line("  → Running: php artisan {$artisanCommand}");
-            [$command, $args] = $this->parseArtisanCommand($artisanCommand);
-            $this->command->call($command, $args);
+            $this->runArtisan($postInstall['artisan']);
         }
 
-        // Publish vendor assets
         if (! empty($postInstall['publish'])) {
-            $this->command->line('  → Publishing assets...');
-            $args = $this->parsePublishArgs($postInstall['publish']);
-            $this->command->call('vendor:publish', $args);
+            $this->runArtisan("vendor:publish {$postInstall['publish']}");
         }
 
-        // Run migrations
         if (! empty($postInstall['migrate'])) {
-            $this->command->line('  → Running migrations...');
             $this->command->call('migrate', ['--force' => true]);
         }
     }
 
-    /**
-     * Parse a publish string like:
-     *   --provider="Foo\Bar" --tag="some-tag"
-     * into an artisan argument array.
-     */
-    private function parsePublishArgs(string $publishString): array
+    private function runArtisan(string $artisanCommand): void
     {
-        $args = [];
+        $this->command->line("  → Running: php artisan {$artisanCommand}");
+        exec("php artisan {$artisanCommand} 2>&1", $output, $exitCode);
 
-        if (preg_match('/--provider="([^"]+)"/', $publishString, $matches)) {
-            $args['--provider'] = $matches[1];
+        if ($exitCode !== 0) {
+            $this->command->warn("  ⚠ Command failed: php artisan {$artisanCommand}");
+            $this->command->line('  <fg=gray>' . implode("\n  ", $output) . '</>');
         }
-
-        if (preg_match('/--tag="([^"]+)"/', $publishString, $matches)) {
-            $args['--tag'] = $matches[1];
-        }
-
-        return $args;
-    }
-
-    /**
-     * Split an artisan command string like "telescope:install --force"
-     * into ['telescope:install', ['--force' => true]].
-     */
-    private function parseArtisanCommand(string $command): array
-    {
-        $parts = explode(' ', $command);
-        $name  = array_shift($parts);
-        $args  = [];
-
-        foreach ($parts as $part) {
-            if (str_starts_with($part, '--')) {
-                $args[trim($part)] = true;
-            }
-        }
-
-        return [$name, $args];
     }
 }
