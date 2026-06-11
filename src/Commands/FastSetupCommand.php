@@ -33,7 +33,6 @@ class FastSetupCommand extends Command
         return self::SUCCESS;
     }
 
-
     private function displayBanner(): void
     {
         $this->newLine();
