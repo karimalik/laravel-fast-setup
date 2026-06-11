@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace karimalik\FastSetup;
 
 use Illuminate\Support\ServiceProvider;
-use Karimalik\FastSetup\Commands\FastSetupCommand;
-use Karimalik\FastSetup\Commands\GenerateEnvCommand;
-use Karimalik\FastSetup\Commands\InstallPackagesCommand;
-use Karimalik\FastSetup\Commands\GenerateStructureCommand;
+use karimalik\FastSetup\Commands\FastSetupCommand;
+use karimalik\FastSetup\Commands\GenerateEnvCommand;
+use karimalik\FastSetup\Commands\InstallPackagesCommand;
+use karimalik\FastSetup\Commands\GenerateStructureCommand;
 
 class FastSetupServiceProvider extends ServiceProvider
 {
@@ -19,13 +21,13 @@ class FastSetupServiceProvider extends ServiceProvider
                 GenerateStructureCommand::class,
                 GenerateEnvCommand::class,
             ]);
- 
+
             $this->publishes([
                 __DIR__ . '/../config/fast-setup.php' => config_path('fast-setup.php'),
             ], 'fast-setup-config');
         }
     }
-    
+
     public function register(): void
     {
         $this->mergeConfigFrom(

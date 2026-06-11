@@ -1,6 +1,8 @@
 <?php
 
-namespace Karimalik\FastSetup\Services;
+declare(strict_types=1);
+
+namespace karimalik\FastSetup\Services;
 
 use Illuminate\Console\Command;
 

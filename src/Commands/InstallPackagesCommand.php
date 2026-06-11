@@ -1,9 +1,10 @@
 <?php
 
-namespace Karimalik\FastSetup\Commands;
+declare(strict_types=1);
+
+namespace karimalik\FastSetup\Commands;
 
 use Illuminate\Console\Command;
-
 use karimalik\FastSetup\Services\PackageInstaller;
 
 class InstallPackagesCommand extends Command
