@@ -24,13 +24,13 @@
     },
     "autoload": {
         "psr-4": {
-            "KarimAlik\\FastSetup\\": "src/"
+            "karimalik\\FastSetup\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "KarimAlik\\FastSetup\\FastSetupServiceProvider"
+                "karimalik\\FastSetup\\FastSetupServiceProvider"
             ]
         }
     },
