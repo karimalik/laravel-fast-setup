@@ -11,10 +11,8 @@ class PackageInstaller
     public function __construct(private Command $command) {}
 
     /**
-     * Install a list of composer packages and run their post-install actions.
-     *
-     * @param  array<string>  $selectedPackages  Composer package names to install
-     * @param  array<string, array>  $allPackages  Full package config from fast-setup.php
+     * @param  array<string>  $selectedPackages
+     * @param  array<string, array>  $allPackages
      */
     public function install(array $selectedPackages, array $allPackages): void
     {
@@ -51,9 +49,6 @@ class PackageInstaller
         }
     }
 
-    /**
-     * Run `composer require` for a single package.
-     */
     private function requirePackage(string $package): bool
     {
         exec("composer require {$package} 2>&1", $output, $exitCode);
@@ -67,15 +62,13 @@ class PackageInstaller
         return true;
     }
 
-    /**
-     * Run post-install steps: publish assets and/or migrate.
-     */
-    private function runPostInstall(string $package, array $postInstall): void
+    private function runPostInstall(string $_package, array $postInstall): void
     {
         if (empty($postInstall)) {
             return;
         }
 
+        // Run as a new process so freshly installed ServiceProviders are discovered
         if (! empty($postInstall['artisan'])) {
             $this->runArtisan($postInstall['artisan']);
         }
