@@ -11,29 +11,38 @@ use function Laravel\Prompts\multiselect;
 
 class InstallPackagesCommand extends Command
 {
-    protected $signature = 'fast:install-packages';
+    protected $signature = 'fast:install-packages
+        {--packages=* : Packages to install (skips interactive prompt)}
+        {--dry-run : Preview installations without running composer}';
 
     protected $description = 'Interactively select and install packages for your Laravel project.';
 
     public function handle(): int
     {
         $allPackages = config('fast-setup.packages');
+        $dryRun      = (bool) $this->option('dry-run');
 
         if (empty($allPackages)) {
             $this->warn('No packages defined in config/fast-setup.php.');
             return self::FAILURE;
         }
 
-        $options = collect($allPackages)
-            ->mapWithKeys(fn($config, $package) => [$package => $config['name']])
-            ->toArray();
+        $preSelected = $this->option('packages');
 
-        $selected = multiselect(
-            label: 'Select the packages you want to install',
-            options: $options,
-            hint: 'Space to select, Enter to confirm.',
-            required: false,
-        );
+        if (! empty($preSelected)) {
+            $selected = $preSelected;
+        } else {
+            $options = collect($allPackages)
+                ->mapWithKeys(fn($config, $package) => [$package => $config['name']])
+                ->toArray();
+
+            $selected = multiselect(
+                label: 'Select the packages you want to install',
+                options: $options,
+                hint: 'Space to select, Enter to confirm.',
+                required: false,
+            );
+        }
 
         if (empty($selected)) {
             $this->warn('No packages selected. Skipping installation.');
@@ -41,6 +50,16 @@ class InstallPackagesCommand extends Command
         }
 
         $this->newLine();
+
+        if ($dryRun) {
+            $this->line('<fg=yellow>[DRY RUN]</> The following packages would be installed:');
+            foreach ($selected as $pkg) {
+                $this->line("  - <fg=cyan>{$pkg}</>");
+            }
+            $this->newLine();
+            return self::SUCCESS;
+        }
+
         $this->info('The following packages will be installed:');
         foreach ($selected as $pkg) {
             $this->line("  - <fg=cyan>{$pkg}</>");

@@ -35,4 +35,23 @@ class InstallPackagesCommandTest extends TestCase
             ->expectsOutputToContain('Installation cancelled')
             ->assertExitCode(0);
     }
+
+    public function test_dry_run_shows_would_install_message(): void
+    {
+        $this->artisan('fast:install-packages', [
+            '--packages' => ['spatie/laravel-permission'],
+            '--dry-run'  => true,
+        ])
+            ->expectsOutputToContain('DRY RUN')
+            ->assertExitCode(0);
+    }
+
+    public function test_skips_multiselect_when_packages_option_provided(): void
+    {
+        $this->artisan('fast:install-packages', [
+            '--packages' => ['spatie/laravel-permission'],
+            '--dry-run'  => true,
+        ])
+            ->assertExitCode(0);
+    }
 }

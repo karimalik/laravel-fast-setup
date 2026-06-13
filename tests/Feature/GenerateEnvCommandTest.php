@@ -142,4 +142,27 @@ class GenerateEnvCommandTest extends TestCase
         $this->assertStringContainsString('QUEUE_CONNECTION=sync', $content);
         $this->assertStringContainsString('SESSION_DRIVER=file', $content);
     }
+
+    public function test_generates_env_via_option_without_prompt(): void
+    {
+        $this->artisan('fast:generate-env', ['--envs' => ['staging']])
+            ->assertExitCode(0);
+
+        $this->assertFileExists(base_path('.env.staging'));
+    }
+
+    public function test_dry_run_does_not_create_files(): void
+    {
+        $this->artisan('fast:generate-env', ['--envs' => ['staging'], '--dry-run' => true])
+            ->assertExitCode(0);
+
+        $this->assertFileDoesNotExist(base_path('.env.staging'));
+    }
+
+    public function test_dry_run_shows_would_create_output(): void
+    {
+        $this->artisan('fast:generate-env', ['--envs' => ['local'], '--dry-run' => true])
+            ->expectsOutputToContain('would create')
+            ->assertExitCode(0);
+    }
 }

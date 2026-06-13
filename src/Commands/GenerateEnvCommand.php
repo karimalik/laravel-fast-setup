@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\File;
 
 class GenerateEnvCommand extends Command
 {
-    protected $signature = 'fast:generate-env';
+    protected $signature = 'fast:generate-env
+        {--envs=* : Environments to generate (skips interactive prompt)}
+        {--dry-run : Preview file generation without creating files}';
 
     protected $description = 'Generate .env files for one or multiple environments';
 
@@ -20,13 +22,34 @@ class GenerateEnvCommand extends Command
         $this->info('⚙️  Environment file generator');
         $this->newLine();
 
-        $selected = $this->choice(
-            'Which environment(s) do you want to generate .env files for?',
-            $this->environments,
-            0,
-            null,
-            true
-        );
+        $dryRun    = (bool) $this->option('dry-run');
+        $preEnvs   = $this->option('envs');
+
+        if (! empty($preEnvs)) {
+            $selected = $preEnvs;
+        } else {
+            $selected = $this->choice(
+                'Which environment(s) do you want to generate .env files for?',
+                $this->environments,
+                0,
+                null,
+                true
+            );
+        }
+
+        if ($dryRun) {
+            $this->line('<fg=yellow>[DRY RUN]</> The following files would be generated:');
+            foreach ($selected as $env) {
+                $filename   = $env === 'local' ? '.env' : ".env.{$env}";
+                $targetPath = base_path($filename);
+                $status     = File::exists($targetPath)
+                    ? '<fg=yellow>would overwrite</>'
+                    : '<fg=green>would create</>';
+                $this->line("  {$status}  {$filename}");
+            }
+            $this->newLine();
+            return self::SUCCESS;
+        }
 
         $this->newLine();
 
