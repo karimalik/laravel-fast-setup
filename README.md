@@ -1,40 +1,30 @@
 # Laravel Fast Setup
 
-**Laravel Fast Setup** is a developer tool that automates the most repetitive tasks when starting a new Laravel project: package installation, environment file generation, and folder structure scaffolding — all through an interactive CLI wizard.
+```ansi
+[91m  ███████╗ █████╗ ███████╗████████╗    ███████╗███████╗████████╗██╗   ██╗██████╗  [0m
+[91m  ██╔════╝██╔══██╗██╔════╝╚══██╔══╝    ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗ [0m
+[91m  █████╗  ███████║███████╗   ██║       ███████╗█████╗     ██║   ██║   ██║██████╔╝ [0m
+[91m  ██╔══╝  ██╔══██║╚════██║   ██║       ╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝  [0m
+[91m  ██║     ██║  ██║███████║   ██║       ███████║███████╗   ██║   ╚██████╔╝██║      [0m
+[91m  ╚═╝     ╚═╝  ╚═╝╚══════╝   ╚═╝       ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     [0m
+[36m  Laravel Fast Setup — by Karim Kompissi[0m
+```
 
-![Laravel Fast Setup preview](assets/img.png)
+<p align="center">
+  <a href="https://packagist.org/packages/karimalik/laravel-fast-setup"><img src="https://img.shields.io/packagist/v/karimalik/laravel-fast-setup?color=orange&label=packagist" alt="Latest Version"></a>
+  <img src="https://img.shields.io/badge/PHP-8.3%20|%208.4-blue" alt="PHP">
+  <img src="https://img.shields.io/badge/Laravel-12%20|%2013-red" alt="Laravel">
+  <img src="https://img.shields.io/github/license/karimalik/laravel-fast-setup?color=green" alt="License">
+</p>
 
----
-
-## Features
-
-- Interactive setup wizard via `php artisan fast:setup`
-- Multi-select package installation with spacebar (powered by [Laravel Prompts](https://laravel.com/docs/prompts))
-- Automatic post-install actions (publish assets, run migrations)
-- `.env` file generation for `local`, `staging`, and `production`
-- Folder structure scaffolding based on your config
-- Fully configurable via `config/fast-setup.php`
-
----
-
-## Requirements
-
-- PHP `^8.3 | ^8.4`
-- Laravel `^12.0 | ^13.0`
+Automates the most repetitive tasks when starting a new Laravel project — package installation, `.env` generation, and folder scaffolding — through an interactive CLI wizard.
 
 ---
 
 ## Installation
 
-Install the package via Composer:
-
 ```bash
 composer require karimalik/laravel-fast-setup
-```
-
-Publish the configuration file:
-
-```bash
 php artisan vendor:publish --tag=fast-setup-config
 ```
 
@@ -44,78 +34,82 @@ php artisan vendor:publish --tag=fast-setup-config
 
 ### Full wizard
 
-Run the interactive wizard that guides you through all setup steps:
-
 ```bash
 php artisan fast:setup
 ```
 
+Guides you through all three steps interactively.
+
 ### Individual commands
 
-You can also run each step independently:
+```bash
+php artisan fast:install-packages    # Select and install packages
+php artisan fast:generate-structure  # Scaffold folder architecture
+php artisan fast:generate-env        # Generate .env files per environment
+```
+
+### Options available on all commands
+
+| Option | Description |
+|---|---|
+| `--dry-run` | Preview changes without applying anything |
+| `--preset=name` | Run a named preset non-interactively (`fast:setup` only) |
+| `--skip-interaction` | Skip top-level confirmation prompts (`fast:setup` only) |
+
+---
+
+## Presets
+
+Run a full project setup in one command:
 
 ```bash
-# Select and install packages interactively
-php artisan fast:install-packages
+php artisan fast:setup --preset=api       # Sanctum, Horizon, Socialite, Backup — api structure
+php artisan fast:setup --preset=standard  # Debugbar, Telescope, Livewire, Filament — standard structure
+php artisan fast:setup --preset=ddd       # Permission, Activitylog, Horizon, Backup — ddd structure
+```
 
-# Generate .env files for one or multiple environments
-php artisan fast:generate-env
+Define your own in `config/fast-setup.php`:
 
-# Scaffold your preferred folder architecture
-php artisan fast:generate-structure
+```php
+'presets' => [
+    'my-preset' => [
+        'name'      => 'My Stack',
+        'packages'  => ['laravel/sanctum', 'laravel/cashier'],
+        'structure' => 'api',
+        'envs'      => ['local', 'staging', 'production'],
+    ],
+],
 ```
 
 ---
 
 ## Configuration
 
-After publishing, edit `config/fast-setup.php` to customize:
+Edit `config/fast-setup.php` to add packages, folder structures, and presets.
 
-### Packages
-
-Define the packages available for installation and their post-install actions:
+### Adding a package
 
 ```php
 'packages' => [
-    'spatie/laravel-permission' => [
-        'name'         => 'Spatie Permission (roles & permissions)',
+    'vendor/package' => [
+        'name'         => 'Human-readable label',
         'post_install' => [
-            'publish' => '--provider="Spatie\Permission\PermissionServiceProvider"',
-            'migrate' => true,
-        ],
-    ],
-    'laravel/telescope' => [
-        'name'         => 'Laravel Telescope (debugging)',
-        'post_install' => [
-            'artisan' => 'telescope:install',
-            'migrate' => true,
+            'artisan' => 'package:install',  // optional
+            'publish' => '--provider="..."', // optional
+            'migrate' => true,               // optional
         ],
     ],
 ],
 ```
 
-Each package entry supports the following `post_install` keys:
-
-| Key | Type | Description |
-|---|---|---|
-| `artisan` | `string` | Artisan command to run after install (e.g. `telescope:install`) |
-| `publish` | `string` | Arguments passed to `vendor:publish` |
-| `migrate` | `bool` | Run `php artisan migrate` after install |
-
-### Folder structures
-
-Define one or more named folder structures to scaffold inside your project:
+### Adding a structure
 
 ```php
 'structures' => [
-    'domain' => [
-        'app/Domain/User',
-        'app/Domain/Order',
+    'my-structure' => [
         'app/Services',
-    ],
-    'modular' => [
-        'app/Modules/Auth',
-        'app/Modules/Dashboard',
+        'app/Repositories',
+        'app/DTOs',
     ],
 ],
 ```
