@@ -75,4 +75,20 @@ class GenerateStructureCommandTest extends TestCase
             ->expectsOutputToContain('Unknown structure')
             ->assertExitCode(1);
     }
+
+    public function test_dry_run_does_not_create_folders(): void
+    {
+        $this->artisan('fast:generate-structure', ['--structure' => 'standard', '--dry-run' => true])
+            ->assertExitCode(0);
+
+        $this->assertDirectoryDoesNotExist(base_path('app/Services'));
+        $this->assertDirectoryDoesNotExist(base_path('app/Repositories'));
+    }
+
+    public function test_dry_run_shows_would_create_output(): void
+    {
+        $this->artisan('fast:generate-structure', ['--structure' => 'standard', '--dry-run' => true])
+            ->expectsOutputToContain('Would create')
+            ->assertExitCode(0);
+    }
 }

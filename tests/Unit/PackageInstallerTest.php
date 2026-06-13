@@ -10,23 +10,18 @@ afterEach(function () {
     Mockery::close();
 });
 
-it('calls require for each selected package', function () {
+it('completes without warning when no packages are selected', function () {
     $command = mock(Command::class, function (MockInterface $mock) {
         $mock->shouldReceive('newLine')->zeroOrMoreTimes();
         $mock->shouldReceive('line')->zeroOrMoreTimes();
-        $mock->shouldReceive('info')->zeroOrMoreTimes();
-        $mock->shouldReceive('warn')->zeroOrMoreTimes();
-        $mock->shouldReceive('error')->zeroOrMoreTimes();
+        $mock->shouldReceive('info')->once()->with(Mockery::on(
+            fn (string $msg) => str_contains($msg, '0/0')
+        ));
+        $mock->shouldNotReceive('warn');
     });
 
     $installer = new PackageInstaller($command);
-
-    $reflection = new ReflectionClass($installer);
-    $method     = $reflection->getMethod('requirePackage');
-
-    $result = true;
-
-    expect($result)->toBeTrue();
+    $installer->install([], []);
 });
 
 it('returns false when process fails', function () {

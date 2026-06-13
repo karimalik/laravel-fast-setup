@@ -104,4 +104,45 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Presets
+    |--------------------------------------------------------------------------
+    | Named project configurations. Run a preset with:
+    |   php artisan fast:setup --preset=api
+    | Each preset defines which packages to install, which folder structure
+    | to scaffold, and which .env files to generate.
+    */
+    'presets' => [
+        'api' => [
+            'name'      => 'REST API',
+            'packages'  => [
+                'laravel/sanctum',
+                'spatie/laravel-query-builder',
+                'spatie/laravel-permission',
+            ],
+            'structure' => 'api',
+            'envs'      => ['local', 'staging', 'production'],
+        ],
+        'standard' => [
+            'name'      => 'Standard Laravel',
+            'packages'  => [
+                'barryvdh/laravel-debugbar',
+                'laravel/telescope',
+                'spatie/laravel-permission',
+            ],
+            'structure' => 'standard',
+            'envs'      => ['local'],
+        ],
+        'ddd' => [
+            'name'      => 'Domain-Driven Design',
+            'packages'  => [
+                'spatie/laravel-permission',
+                'spatie/laravel-activitylog',
+            ],
+            'structure' => 'ddd',
+            'envs'      => ['local', 'staging', 'production'],
+        ],
+    ],
+
 ];
