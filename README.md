@@ -10,12 +10,14 @@
   Laravel Fast Setup — by Karim Kompissi
 ```
 
-<p align="center">
-  <a href="https://packagist.org/packages/karimalik/laravel-fast-setup"><img src="https://img.shields.io/packagist/v/karimalik/laravel-fast-setup?color=orange&label=packagist" alt="Latest Version"></a>
-  <img src="https://img.shields.io/badge/PHP-8.3%20|%208.4-blue" alt="PHP">
-  <img src="https://img.shields.io/badge/Laravel-12%20|%2013-red" alt="Laravel">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-</p>
+<div align="center">
+
+[![Total Downloads](https://img.shields.io/packagist/dt/karimalik/laravel-fast-setup.svg?style=flat-square)](https://packagist.org/packages/karimalik/laravel-fast-setup)
+[![Latest Version](https://img.shields.io/packagist/v/karimalik/laravel-fast-setup.svg?style=flat-square)](https://packagist.org/packages/karimalik/laravel-fast-setup)
+[![PHP Version](https://img.shields.io/packagist/php-v/karimalik/laravel-fast-setup.svg?style=flat-square)](https://packagist.org/packages/karimalik/laravel-fast-setup)
+[![License](https://img.shields.io/packagist/l/karimalik/laravel-fast-setup.svg?style=flat-square)](https://packagist.org/packages/karimalik/laravel-fast-setup)
+
+</div>
 
 Automates the most repetitive tasks when starting a new Laravel project — package installation, `.env` generation, and folder scaffolding — through an interactive CLI wizard.
 
