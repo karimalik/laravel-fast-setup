@@ -7,6 +7,8 @@ namespace karimalik\FastSetup\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
+use function Laravel\Prompts\multiselect;
+
 class GenerateEnvCommand extends Command
 {
     protected $signature = 'fast:generate-env
@@ -28,12 +30,11 @@ class GenerateEnvCommand extends Command
         if (! empty($preEnvs)) {
             $selected = $preEnvs;
         } else {
-            $selected = $this->choice(
-                'Which environment(s) do you want to generate .env files for?',
-                $this->environments,
-                0,
-                null,
-                true
+            $selected = multiselect(
+                label: 'Which environment(s) do you want to generate .env files for?',
+                options: $this->environments,
+                hint: 'Space to select, Enter to confirm.',
+                required: false,
             );
         }
 
