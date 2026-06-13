@@ -13,9 +13,6 @@ class GenerateEnvCommand extends Command
 
     protected $description = 'Generate .env files for one or multiple environments';
 
-    /**
-     * Environments available for generation.
-     */
     private array $environments = ['local', 'staging', 'production'];
 
     public function handle(): int
@@ -28,7 +25,7 @@ class GenerateEnvCommand extends Command
             $this->environments,
             0,
             null,
-            true 
+            true
         );
 
         $this->newLine();
@@ -46,35 +43,31 @@ class GenerateEnvCommand extends Command
     private function generateEnv(string $env): void
     {
         $filename   = $env === 'local' ? '.env' : ".env.{$env}";
-        $stubPath   = __DIR__ . "/../../Stubs/env/.env.{$env}.stub";
         $targetPath = base_path($filename);
 
         if (File::exists($targetPath)) {
             if (! $this->confirm("  <fg=yellow>{$filename} already exists. Overwrite?</>", false)) {
-                $this->line("  <fg=yellow>⚠  Skipped:</>  {$filename}");
+                $this->line("  <fg=yellow> Skipped:</>  {$filename}");
                 return;
             }
         }
 
-        if (File::exists($stubPath)) {
-            File::copy($stubPath, $targetPath);
-        } else {
-            File::put($targetPath, $this->buildDefaultContent($env));
-        }
+        File::put($targetPath, $this->buildDefaultContent($env));
 
         $this->line("  <fg=green>✔ Generated:</>  {$filename}");
     }
 
     private function buildDefaultContent(string $env): string
     {
-        $debug  = $env === 'production' ? 'false' : 'true';
-        $log    = $env === 'production' ? 'error'  : 'debug';
-        $cache  = $env === 'production' ? 'redis'  : 'file';
-        $queue  = $env === 'production' ? 'redis'  : 'sync';
+        $debug   = $env === 'production' ? 'false' : 'true';
+        $log     = $env === 'production' ? 'error' : 'debug';
+        $cache   = $env === 'production' ? 'redis' : 'file';
+        $queue   = $env === 'production' ? 'redis' : 'sync';
         $session = $env === 'production' ? 'redis' : 'file';
+        $appName = config('app.name', 'Laravel');
 
         return <<<ENV
-APP_NAME=Laravel
+APP_NAME={$appName}
 APP_ENV={$env}
 APP_KEY=
 APP_DEBUG={$debug}
@@ -107,7 +100,7 @@ MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS="hello@example.com"
-MAIL_FROM_NAME="\${APP_NAME}"
+MAIL_FROM_NAME="{$appName}"
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -123,7 +116,7 @@ PUSHER_PORT=443
 PUSHER_SCHEME=https
 PUSHER_APP_CLUSTER=mt1
 
-VITE_APP_NAME="\${APP_NAME}"
+VITE_APP_NAME="{$appName}"
 ENV;
     }
 }
