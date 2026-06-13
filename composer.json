@@ -15,7 +15,8 @@
         {
             "name": "Karim Kompissi",
             "email": "karimkompissi@gmail.com",
-            "role": "Developer"
+            "role": "Developer",
+            "homepage": "https://github.com/karimalik"
         }
     ],
     "require": {
@@ -23,10 +24,23 @@
         "illuminate/support": "^12.0|^13.0",
         "laravel/prompts": "^0.3"
     },
+    "require-dev": {
+        "pestphp/pest": "^4.0",
+        "orchestra/testbench": "^11.0",
+        "mockery/mockery": "^1.6"
+    },
     "autoload": {
         "psr-4": {
             "karimalik\\FastSetup\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "karimalik\\FastSetup\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest --configuration phpunit.xml"
     },
     "extra": {
         "laravel": {
@@ -36,5 +50,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

@@ -46,8 +46,8 @@ class GenerateEnvCommand extends Command
         $targetPath = base_path($filename);
 
         if (File::exists($targetPath)) {
-            if (! $this->confirm("  <fg=yellow>{$filename} already exists. Overwrite?</>", false)) {
-                $this->line("  <fg=yellow> Skipped:</>  {$filename}");
+            if (! $this->confirm("{$filename} already exists. Overwrite?", false)) {
+                $this->line("  <fg=yellow>⚠  Skipped:</>  {$filename}");
                 return;
             }
         }
@@ -59,12 +59,12 @@ class GenerateEnvCommand extends Command
 
     private function buildDefaultContent(string $env): string
     {
+        $appName = config('app.name', 'Laravel');
         $debug   = $env === 'production' ? 'false' : 'true';
         $log     = $env === 'production' ? 'error' : 'debug';
         $cache   = $env === 'production' ? 'redis' : 'file';
         $queue   = $env === 'production' ? 'redis' : 'sync';
         $session = $env === 'production' ? 'redis' : 'file';
-        $appName = config('app.name', 'Laravel');
 
         return <<<ENV
 APP_NAME={$appName}
