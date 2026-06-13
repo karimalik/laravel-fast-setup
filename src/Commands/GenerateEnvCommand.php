@@ -46,7 +46,7 @@ class GenerateEnvCommand extends Command
     private function generateEnv(string $env): void
     {
         $filename   = $env === 'local' ? '.env' : ".env.{$env}";
-        $stubPath   = __DIR__ . "/../../stubs/env/.env.{$env}.stub";
+        $stubPath   = __DIR__ . "/../../Stubs/env/.env.{$env}.stub";
         $targetPath = base_path($filename);
 
         if (File::exists($targetPath)) {

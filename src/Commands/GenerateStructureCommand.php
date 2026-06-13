@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 
 class GenerateStructureCommand extends Command
 {
-    protected $signature = 'fast:generate-structure';
+    protected $signature = 'fast:generate-structure {--structure= : The structure to generate (skip prompt)}';
 
     protected $description = 'Scaffold your preferred folder architecture inside the app directory';
 
@@ -33,21 +33,38 @@ class GenerateStructureCommand extends Command
             $this->newLine();
         }
 
-        $choice = $this->choice(
+        $choice = $this->option('structure') ?? $this->choice(
             'Which structure do you want to generate?',
             array_keys($structures)
         );
 
-        $folders  = $structures[$choice];
-        $created  = 0;
-        $skipped  = 0;
+        if (! array_key_exists($choice, $structures)) {
+            $this->error("Unknown structure: {$choice}");
+            return self::FAILURE;
+        }
+
+        $folders = $structures[$choice];
+        $created = 0;
+        $skipped = 0;
+        $blocked = 0;
 
         $this->newLine();
         $this->info("Generating <fg=cyan>{$choice}</> structure...");
         $this->newLine();
 
         foreach ($folders as $folder) {
-            $path = base_path($folder);
+
+            $folder = ltrim($folder, '/\\');
+            $path   = base_path($folder);
+
+            if (
+                ! str_starts_with(realpath(base_path()) . DIRECTORY_SEPARATOR, realpath(base_path()) . DIRECTORY_SEPARATOR)
+                || str_contains($folder, '..')
+            ) {
+                $this->line("  <fg=red>✘ Blocked unsafe path:</>  {$folder}");
+                $blocked++;
+                continue;
+            }
 
             if (File::isDirectory($path)) {
                 $this->line("  <fg=yellow>⚠  Already exists:</>  {$folder}");
@@ -63,8 +80,8 @@ class GenerateStructureCommand extends Command
         }
 
         $this->newLine();
-        $this->info("Done! {$created} folder(s) created, {$skipped} skipped.");
+        $this->info("Done! {$created} folder(s) created, {$skipped} skipped, {$blocked} blocked.");
 
-        return self::SUCCESS;
+        return $blocked > 0 ? self::FAILURE : self::SUCCESS;
     }
 }
