@@ -43,7 +43,7 @@ class PackageInstaller
         $this->command->info("📦 Installation complete — {$success}/{$total} package(s) installed.");
 
         if (! empty($failed)) {
-            $this->command->warn('The following packages faile  d to install:');
+            $this->command->warn('The following packages failed to install:');
             foreach ($failed as $pkg) {
                 $this->command->line("  <fg=red>✘ {$pkg}</>");
             }
