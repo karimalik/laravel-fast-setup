@@ -81,18 +81,21 @@ class PackageInstaller
         }
 
         if (! empty($postInstall['migrate'])) {
-            $this->command->call('migrate', ['--force' => true]);
+            $this->command->call('migrate');
         }
     }
 
     private function runArtisan(string $artisanCommand): void
     {
         $this->command->line("  → Running: php artisan {$artisanCommand}");
-        exec("php artisan {$artisanCommand} 2>&1", $output, $exitCode);
 
-        if ($exitCode !== 0) {
+        $process = Process::fromShellCommandline("php artisan {$artisanCommand}");
+        $process->setTimeout(null);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
             $this->command->warn("  ⚠ Command failed: php artisan {$artisanCommand}");
-            $this->command->line('  <fg=gray>' . implode("\n  ", $output) . '</>');
+            $this->command->line('  <fg=gray>' . $process->getErrorOutput() . '</>');
         }
     }
 }

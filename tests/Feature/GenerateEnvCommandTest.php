@@ -1,168 +1,117 @@
 <?php
 
-use karimalik\FastSetup\FastSetupServiceProvider;
-use Orchestra\Testbench\TestCase;
+use karimalik\FastSetup\Tests\TestCase;
 use Illuminate\Support\Facades\File;
 
-class GenerateEnvCommandTest extends TestCase
-{
-    protected function getPackageProviders($app): array
-    {
-        return [FastSetupServiceProvider::class];
-    }
+uses(TestCase::class);
 
-    protected function tearDown(): void
-    {
-        File::delete(base_path('.env'));
-        File::delete(base_path('.env.staging'));
-        File::delete(base_path('.env.production'));
+afterEach(function () {
+    File::delete(base_path('.env'));
+    File::delete(base_path('.env.staging'));
+    File::delete(base_path('.env.production'));
+});
 
-        parent::tearDown();
-    }
+it('generates local env file', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['local'])
+        ->assertExitCode(0);
 
-    public function test_generates_local_env_file(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['local'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    expect(base_path('.env'))->toBeFile();
+});
 
-        $this->assertFileExists(base_path('.env'));
-    }
+it('generates staging env file', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['staging'])
+        ->assertExitCode(0);
 
-    public function test_generates_staging_env_file(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['staging'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    expect(base_path('.env.staging'))->toBeFile();
+});
 
-        $this->assertFileExists(base_path('.env.staging'));
-    }
+it('generates production env file', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['production'])
+        ->assertExitCode(0);
 
-    public function test_generates_production_env_file(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['production'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    expect(base_path('.env.production'))->toBeFile();
+});
 
-        $this->assertFileExists(base_path('.env.production'));
-    }
+it('generates multiple env files', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['staging', 'production'])
+        ->assertExitCode(0);
 
-    public function test_generates_multiple_env_files(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['staging', 'production'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    expect(base_path('.env.staging'))->toBeFile();
+    expect(base_path('.env.production'))->toBeFile();
+});
 
-        $this->assertFileExists(base_path('.env.staging'));
-        $this->assertFileExists(base_path('.env.production'));
-    }
+it('skips existing env file when user declines', function () {
+    File::put(base_path('.env'), 'EXISTING_CONTENT');
 
-    public function test_skips_existing_env_file_when_user_declines(): void
-    {
-        File::put(base_path('.env'), 'EXISTING_CONTENT');
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['local'])
+        ->expectsConfirmation('.env already exists. Overwrite?', 'no')
+        ->assertExitCode(0);
 
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['local'],
-                ['local', 'staging', 'production']
-            )
-            ->expectsConfirmation('.env already exists. Overwrite?', 'no')
-            ->assertExitCode(0);
+    expect(File::get(base_path('.env')))->toBe('EXISTING_CONTENT');
+});
 
-        $this->assertEquals('EXISTING_CONTENT', File::get(base_path('.env')));
-    }
+it('overwrites existing env file when user confirms', function () {
+    File::put(base_path('.env'), 'EXISTING_CONTENT');
 
-    public function test_overwrites_existing_env_file_when_user_confirms(): void
-    {
-        File::put(base_path('.env'), 'EXISTING_CONTENT');
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['local'])
+        ->expectsConfirmation('.env already exists. Overwrite?', 'yes')
+        ->assertExitCode(0);
 
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['local'],
-                ['local', 'staging', 'production']
-            )
-            ->expectsConfirmation('.env already exists. Overwrite?', 'yes')
-            ->assertExitCode(0);
+    expect(File::get(base_path('.env')))->not->toBe('EXISTING_CONTENT');
+});
 
-        $this->assertNotEquals('EXISTING_CONTENT', File::get(base_path('.env')));
-    }
+it('generates production env with correct values', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['production'])
+        ->assertExitCode(0);
 
-    public function test_production_env_has_correct_values(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['production'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    $content = File::get(base_path('.env.production'));
 
-        $content = File::get(base_path('.env.production'));
+    expect($content)
+        ->toContain('APP_DEBUG=false')
+        ->toContain('LOG_LEVEL=error')
+        ->toContain('CACHE_DRIVER=redis')
+        ->toContain('QUEUE_CONNECTION=redis')
+        ->toContain('SESSION_DRIVER=redis');
+});
 
-        $this->assertStringContainsString('APP_DEBUG=false', $content);
-        $this->assertStringContainsString('LOG_LEVEL=error', $content);
-        $this->assertStringContainsString('CACHE_DRIVER=redis', $content);
-        $this->assertStringContainsString('QUEUE_CONNECTION=redis', $content);
-        $this->assertStringContainsString('SESSION_DRIVER=redis', $content);
-    }
+it('generates local env with correct values', function () {
+    $this->artisan('fast:generate-env')
+        ->expectsQuestion('Which environment(s) do you want to generate .env files for?', ['local'])
+        ->assertExitCode(0);
 
-    public function test_local_env_has_correct_values(): void
-    {
-        $this->artisan('fast:generate-env')
-            ->expectsChoice(
-                'Which environment(s) do you want to generate .env files for?',
-                ['local'],
-                ['local', 'staging', 'production']
-            )
-            ->assertExitCode(0);
+    $content = File::get(base_path('.env'));
 
-        $content = File::get(base_path('.env'));
+    expect($content)
+        ->toContain('APP_DEBUG=true')
+        ->toContain('LOG_LEVEL=debug')
+        ->toContain('CACHE_DRIVER=file')
+        ->toContain('QUEUE_CONNECTION=sync')
+        ->toContain('SESSION_DRIVER=file');
+});
 
-        $this->assertStringContainsString('APP_DEBUG=true', $content);
-        $this->assertStringContainsString('LOG_LEVEL=debug', $content);
-        $this->assertStringContainsString('CACHE_DRIVER=file', $content);
-        $this->assertStringContainsString('QUEUE_CONNECTION=sync', $content);
-        $this->assertStringContainsString('SESSION_DRIVER=file', $content);
-    }
+it('generates env via option without prompt', function () {
+    $this->artisan('fast:generate-env', ['--envs' => ['staging']])
+        ->assertExitCode(0);
 
-    public function test_generates_env_via_option_without_prompt(): void
-    {
-        $this->artisan('fast:generate-env', ['--envs' => ['staging']])
-            ->assertExitCode(0);
+    expect(base_path('.env.staging'))->toBeFile();
+});
 
-        $this->assertFileExists(base_path('.env.staging'));
-    }
+it('does not create files in dry run mode', function () {
+    $this->artisan('fast:generate-env', ['--envs' => ['staging'], '--dry-run' => true])
+        ->assertExitCode(0);
 
-    public function test_dry_run_does_not_create_files(): void
-    {
-        $this->artisan('fast:generate-env', ['--envs' => ['staging'], '--dry-run' => true])
-            ->assertExitCode(0);
+    expect(base_path('.env.staging'))->not->toBeFile();
+});
 
-        $this->assertFileDoesNotExist(base_path('.env.staging'));
-    }
-
-    public function test_dry_run_shows_would_create_output(): void
-    {
-        $this->artisan('fast:generate-env', ['--envs' => ['local'], '--dry-run' => true])
-            ->expectsOutputToContain('would create')
-            ->assertExitCode(0);
-    }
-}
+it('shows would create output in dry run mode', function () {
+    $this->artisan('fast:generate-env', ['--envs' => ['local'], '--dry-run' => true])
+        ->expectsOutputToContain('would create')
+        ->assertExitCode(0);
+});

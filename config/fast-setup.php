@@ -58,6 +58,39 @@ return [
             'name'         => 'AWS S3 Storage (Flysystem)',
             'post_install' => [],
         ],
+        'livewire/livewire' => [
+            'name'         => 'Livewire (full-stack components)',
+            'post_install' => [],
+        ],
+        'filament/filament' => [
+            'name'         => 'Filament (admin panel)',
+            'post_install' => [
+                'artisan' => 'filament:install --panels',
+            ],
+        ],
+        'laravel/horizon' => [
+            'name'         => 'Laravel Horizon (queue dashboard)',
+            'post_install' => [
+                'artisan' => 'horizon:install',
+            ],
+        ],
+        'laravel/socialite' => [
+            'name'         => 'Laravel Socialite (OAuth login)',
+            'post_install' => [],
+        ],
+        'spatie/laravel-backup' => [
+            'name'         => 'Spatie Backup',
+            'post_install' => [
+                'publish' => '--provider="Spatie\Backup\BackupServiceProvider"',
+            ],
+        ],
+        'laravel/cashier' => [
+            'name'         => 'Laravel Cashier (Stripe billing)',
+            'post_install' => [
+                'publish' => '--tag="cashier-migrations"',
+                'migrate' => true,
+            ],
+        ],
     ],
 
     /*
@@ -120,6 +153,9 @@ return [
                 'laravel/sanctum',
                 'spatie/laravel-query-builder',
                 'spatie/laravel-permission',
+                'laravel/horizon',
+                'laravel/socialite',
+                'spatie/laravel-backup',
             ],
             'structure' => 'api',
             'envs'      => ['local', 'staging', 'production'],
@@ -130,6 +166,9 @@ return [
                 'barryvdh/laravel-debugbar',
                 'laravel/telescope',
                 'spatie/laravel-permission',
+                'livewire/livewire',
+                'filament/filament',
+                'laravel/horizon',
             ],
             'structure' => 'standard',
             'envs'      => ['local'],
@@ -139,6 +178,8 @@ return [
             'packages'  => [
                 'spatie/laravel-permission',
                 'spatie/laravel-activitylog',
+                'laravel/horizon',
+                'spatie/laravel-backup',
             ],
             'structure' => 'ddd',
             'envs'      => ['local', 'staging', 'production'],

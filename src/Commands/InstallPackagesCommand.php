@@ -30,6 +30,13 @@ class InstallPackagesCommand extends Command
         $preSelected = $this->option('packages');
 
         if (! empty($preSelected)) {
+            $invalid = array_diff($preSelected, array_keys($allPackages));
+
+            if (! empty($invalid)) {
+                $this->error('Unknown package(s): ' . implode(', ', $invalid));
+                return self::FAILURE;
+            }
+
             $selected = $preSelected;
         } else {
             $options = collect($allPackages)
