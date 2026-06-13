@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace karimalik\FastSetup\Services;
 
 use Illuminate\Console\Command;
+use Symfony\Component\Process\Process;
 
 class PackageInstaller
 {
@@ -42,7 +43,7 @@ class PackageInstaller
         $this->command->info("📦 Installation complete — {$success}/{$total} package(s) installed.");
 
         if (! empty($failed)) {
-            $this->command->warn('The following packages failed to install:');
+            $this->command->warn('The following packages faile  d to install:');
             foreach ($failed as $pkg) {
                 $this->command->line("  <fg=red>✘ {$pkg}</>");
             }
@@ -51,11 +52,13 @@ class PackageInstaller
 
     private function requirePackage(string $package): bool
     {
-        exec("composer require {$package} 2>&1", $output, $exitCode);
+        $process = new Process(['composer', 'require', $package]);
+        $process->setTimeout(null);
+        $process->run();
 
-        if ($exitCode !== 0) {
+        if (! $process->isSuccessful()) {
             $this->command->error("  ✘ Failed to install {$package}.");
-            $this->command->line('  <fg=gray>' . implode("\n  ", $output) . '</>');
+            $this->command->line('  <fg=gray>' . $process->getErrorOutput() . '</>');
             return false;
         }
 

@@ -8,23 +8,26 @@ use Illuminate\Console\Command;
 
 class FastSetupCommand extends Command
 {
-    protected $signature = 'fast:setup';
+    protected $signature = 'fast:setup {--no-interaction}';
     protected $description = 'Run the full interactive Laravel project setup wizard';
+
 
     public function handle(): int
     {
         $this->displayBanner();
 
-        if ($this->confirm(' Do you want to install packages?', true)) {
-            $this->call('fast:install-packages');
+        $noInteraction = $this->option('no-interaction');
+
+        if ($noInteraction || $this->confirm(' Do you want to install packages?', true)) {
+            $this->call('fast:install-packages', ['--no-interaction' => true]);
         }
 
-        if ($this->confirm(' Do you want to generate a folder structure?', true)) {
-            $this->call('fast:generate-structure');
+        if ($noInteraction || $this->confirm(' Do you want to generate a folder structure?', true)) {
+            $this->call('fast:generate-structure', ['--no-interaction' => true]);
         }
 
-        if ($this->confirm(' Do you want to generate .env files?', true)) {
-            $this->call('fast:generate-env');
+        if ($noInteraction || $this->confirm(' Do you want to generate .env files?', true)) {
+            $this->call('fast:generate-env', ['--no-interaction' => true]);
         }
 
         $this->newLine();
